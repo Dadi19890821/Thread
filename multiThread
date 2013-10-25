@@ -1,0 +1,62 @@
+
+//////////////////////////////////////////////////////////////////////////
+//			多线程实例
+//////////////////////////////////////////////////////////////////////////
+
+#include <iostream>
+#include <windows.h>
+using namespace std;
+
+int index = 0;
+int tickets = 100;
+HANDLE hMutex;
+DWORD WINAPI ThreadPro1(LPVOID lpParameter)
+{
+//	cout<<"Thread1 sells!"<<endl;
+	while(TRUE)
+	{
+		WaitForSingleObject(hMutex,INFINITE); //申请互斥资源
+		if (tickets > 0)
+		{
+			cout<<"Thread1 sells ticket "<<tickets--<<endl;
+		}
+		else
+			break;
+		ReleaseMutex(hMutex);	//释放互斥资源
+	}
+	return 0;
+
+}
+
+DWORD WINAPI ThreadPro2(LPVOID lpParameter)
+{
+	while(TRUE)
+	{
+		WaitForSingleObject(hMutex,INFINITE);
+		if (tickets > 0)
+		{
+			cout<<"Thread2 sells ticket "<<tickets--<<endl;
+		}
+		else
+			break;
+		ReleaseMutex(hMutex);
+	}
+	
+	return 0;
+}
+int main(void)
+{
+	HANDLE hThread1 = CreateThread(NULL,0,ThreadPro1,NULL,0,NULL);
+	CloseHandle(hThread1);
+
+	HANDLE hThread2 = CreateThread(NULL,0,ThreadPro2,NULL,0,NULL);
+	CloseHandle(hThread2);
+
+	hMutex = CreateMutex(NULL,false,NULL);  //创建互斥资源 第二个参数设为false表示不占用该资源
+
+	cout<<"Main thread is running!"<<endl;
+	Sleep(5000);  //让主线程睡眠5秒钟 让CPU有时间去执行其他线程
+	
+	return 0;
+
+}
